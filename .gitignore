@@ -2,3 +2,6 @@
 /created-or-updated-products-counter-results.csv
 /new-accounts-counter-results.csv
 /product-created-or-updated-merchants-counter-results.csv
+/created-or-updated-products-counter/target/
+/new-accounts-counter/target/
+/product-updated-merchants-counter/target/

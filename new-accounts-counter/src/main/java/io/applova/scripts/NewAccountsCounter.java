@@ -6,6 +6,7 @@ import org.apache.commons.csv.CSVRecord;
 
 import java.io.*;
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -21,21 +22,21 @@ public class NewAccountsCounter {
         String password = "password";
 
         String query = "";
-        String startDate;
-        String endDate;
+        LocalDate startDate;
+        LocalDate endDate;
 
         if (args.length == 3) {
             List<String> emails = getEmailsFrom(args[0]);
-            startDate = args[1];
-            endDate = args[2];
+            startDate = LocalDate.parse(args[1]);
+            endDate = LocalDate.parse(args[2]);
 
             for (String email : emails) {
-                query = query.concat("select businessid, name, country, businessuser, created_date from business where email = '").concat(email).concat("' and created_date between '").concat(startDate).concat("' and '").concat(endDate).concat("';");
+                query = query.concat("select businessid, name, country, businessuser, created_date from business where email = '").concat(email).concat("' and created_date between '").concat(startDate.toString()).concat("' and '").concat(endDate.toString()).concat("';");
             }
         } else {
-            startDate = args[0];
-            endDate = args[1];
-            query = query.concat("select businessid, name, country, businessuser, created_date from business where created_date between '").concat(startDate).concat("' and '").concat(endDate).concat("';");
+            startDate = LocalDate.parse(args[0]);
+            endDate = LocalDate.parse(args[1]);
+            query = query.concat("select businessid, name, country, businessuser, created_date from business where created_date between '").concat(startDate.toString()).concat("' and '").concat(endDate.toString()).concat("';");
         }
 
         businessUsers = new HashSet<>();
@@ -59,7 +60,7 @@ public class NewAccountsCounter {
                 }
             } while (preparedStatement.getMoreResults());
 
-            printTotal(bufferedWriter, startDate, endDate);
+            printTotal(bufferedWriter, startDate.toString(), endDate.minusDays(1).toString());
 
         } catch (SQLException ex) {
             Logger lgr = Logger.getLogger(NewAccountsCounter.class.getName());
