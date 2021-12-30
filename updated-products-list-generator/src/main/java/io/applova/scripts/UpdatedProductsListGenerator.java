@@ -8,14 +8,11 @@ import java.io.*;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class NewAccountsCounter {
-    private static HashSet<String> businessUsers;
-
+public class UpdatedProductsListGenerator {
     public static void main(String[] args) {
         String url = "jdbc:postgresql://postgres.apptizer.io:5432/apptizer";
         String user = "postgres";
@@ -31,15 +28,14 @@ public class NewAccountsCounter {
             endDate = LocalDate.parse(args[2]);
 
             for (String businessId : businessIds) {
-                query = query.concat("select businessid, name, country, businessuser, created_date from business where businessid = '").concat(businessId).concat("' and created_date between '").concat(startDate.toString()).concat("' and '").concat(endDate.toString()).concat("';");
+                query = query.concat("select businessid, productid, product.name, coalesce(product.last_updated_date, product.created_date) as last_updated_date from product, business where product.business = business.businessid and businessid = '").concat(businessId).concat("' and (product.created_date between '").concat(startDate.toString()).concat("' and '").concat(endDate.toString()).concat("' or product.last_updated_date between '").concat(startDate.toString()).concat("' and '").concat(endDate.toString()).concat("');");
             }
         } else {
             startDate = LocalDate.parse(args[0]);
             endDate = LocalDate.parse(args[1]);
-            query = query.concat("select businessid, name, country, businessuser, created_date from business where created_date between '").concat(startDate.toString()).concat("' and '").concat(endDate.toString()).concat("';");
+            query = query.concat("select businessid, productid, product.name, coalesce(product.last_updated_date, product.created_date) as last_updated_date from product, business where product.business = business.businessid and (product.created_date between '").concat(startDate.toString()).concat("' and '").concat(endDate.toString()).concat("' or product.last_updated_date between '").concat(startDate.toString()).concat("' and '").concat(endDate.toString()).concat("')");
         }
 
-        businessUsers = new HashSet<>();
         BufferedWriter bufferedWriter = null;
 
         try (Connection connection = DriverManager.getConnection(url, user, password);
@@ -47,8 +43,8 @@ public class NewAccountsCounter {
 
             preparedStatement.execute();
 
-            bufferedWriter = new BufferedWriter(new FileWriter("new-accounts-counter-results.csv"));
-            bufferedWriter.write("Business ID,Business Name,Country,Business User,Created Date");
+            bufferedWriter = new BufferedWriter(new FileWriter("created-or-updated-products-list.csv"));
+            bufferedWriter.write("Business ID,Product ID,Product Name,Created / Last Updated Date");
             bufferedWriter.newLine();
 
             do {
@@ -60,10 +56,8 @@ public class NewAccountsCounter {
                 }
             } while (preparedStatement.getMoreResults());
 
-            printTotal(bufferedWriter, startDate.toString(), endDate.minusDays(1).toString());
-
         } catch (SQLException ex) {
-            Logger lgr = Logger.getLogger(NewAccountsCounter.class.getName());
+            Logger lgr = Logger.getLogger(UpdatedProductsListGenerator.class.getName());
             lgr.log(Level.SEVERE, ex.getMessage(), ex);
         } catch (IOException e) {
             e.printStackTrace();
@@ -97,9 +91,6 @@ public class NewAccountsCounter {
         do {
             for (int i = 1; i <= resultSetMetaData.getColumnCount(); i++) {
                 String value = "\"" + resultSet.getString(i) + "\"";
-                if (resultSetMetaData.getColumnLabel(i).equals("businessuser")) {
-                    businessUsers.add(value);
-                }
                 if (i < resultSetMetaData.getColumnCount()) {
                     value = value.concat(",");
                 }
@@ -107,10 +98,5 @@ public class NewAccountsCounter {
             }
             bufferedWriter.newLine();
         } while (resultSet.next());
-    }
-
-    private static void printTotal(
-            BufferedWriter bufferedWriter, String startDate, String endDate) throws IOException {
-        bufferedWriter.append("\nNumber of merchants who created a new account from ").append(startDate).append(" to ").append(endDate).append(": ").append(String.valueOf(businessUsers.size()));
     }
 }

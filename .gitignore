@@ -5,3 +5,10 @@
 /created-or-updated-products-counter/target/
 /new-accounts-counter/target/
 /product-updated-merchants-counter/target/
+/created-or-updated-products-list.csv
+/updated-products-list-generator/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst
+/updated-products-list-generator/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst
+/updated-products-list-generator/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst
+/updated-products-list-generator/target/maven-archiver/pom.properties
+/updated-products-list-generator/target/updated-products-list-generator.jar
+/updated-products-list-generator/target/classes/io/applova/scripts/UpdatedProductsListGenerator.class

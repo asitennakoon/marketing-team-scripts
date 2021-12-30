@@ -27,17 +27,17 @@ public class UpdatedProductsCounter {
         LocalDate endDate;
 
         if (args.length == 3) {
-            List<String> emails = getEmailsFrom(args[0]);
+            List<String> businessIds = getBusinessIdsFrom(args[0]);
             startDate = LocalDate.parse(args[1]);
             endDate = LocalDate.parse(args[2]);
 
-            for (String email : emails) {
-                query = query.concat("select email, product.business, business.name, country, count(productid), count(product.last_updated_date) filter ( where product.last_updated_date between '").concat(startDate.toString()).concat("' and '").concat(endDate.toString()).concat("' ) as updated from product, business where product.business = business.businessid and email = '").concat(email).concat("' and (product.created_date between '").concat(startDate.toString()).concat("' and '").concat(endDate.toString()).concat("' or product.last_updated_date between '").concat(startDate.toString()).concat("' and '").concat(endDate.toString()).concat("') group by email, product.business, business.name, country;");
+            for (String businessId : businessIds) {
+                query = query.concat("select businessuser, product.business, business.name, country, count(productid), count(product.last_updated_date) filter ( where product.last_updated_date between '").concat(startDate.toString()).concat("' and '").concat(endDate.toString()).concat("' ) as updated from product, business where product.business = business.businessid and businessid = '").concat(businessId).concat("' and (product.created_date between '").concat(startDate.toString()).concat("' and '").concat(endDate.toString()).concat("' or product.last_updated_date between '").concat(startDate.toString()).concat("' and '").concat(endDate.toString()).concat("') group by businessuser, product.business, business.name, country;");
             }
         } else {
             startDate = LocalDate.parse(args[0]);
             endDate = LocalDate.parse(args[1]);
-            query = query.concat("select email, product.business, business.name, country, count(productid), count(product.last_updated_date) filter ( where product.last_updated_date between '").concat(startDate.toString()).concat("' and '").concat(endDate.toString()).concat("' ) as updated from product, business where product.business = business.businessid and (product.created_date between '").concat(startDate.toString()).concat("' and '").concat(endDate.toString()).concat("' or product.last_updated_date between '").concat(startDate.toString()).concat("' and '").concat(endDate.toString()).concat("') group by email, product.business, business.name, country");
+            query = query.concat("select businessuser, product.business, business.name, country, count(productid), count(product.last_updated_date) filter ( where product.last_updated_date between '").concat(startDate.toString()).concat("' and '").concat(endDate.toString()).concat("' ) as updated from product, business where product.business = business.businessid and (product.created_date between '").concat(startDate.toString()).concat("' and '").concat(endDate.toString()).concat("' or product.last_updated_date between '").concat(startDate.toString()).concat("' and '").concat(endDate.toString()).concat("') group by businessuser, product.business, business.name, country");
         }
 
         businessUsers = new HashSet<>();
@@ -49,7 +49,7 @@ public class UpdatedProductsCounter {
             preparedStatement.execute();
 
             bufferedWriter = new BufferedWriter(new FileWriter("created-or-updated-products-counter-results.csv"));
-            bufferedWriter.write("Email,Business ID,Business Name,Country,Products Count,Updated Products Count,Added Products Count");
+            bufferedWriter.write("Business User,Business ID,Business Name,Country,Products Count,Updated Products Count,Added Products Count");
             bufferedWriter.newLine();
 
             do {
@@ -79,17 +79,17 @@ public class UpdatedProductsCounter {
         }
     }
 
-    private static List<String> getEmailsFrom(String filePath) {
-        List<String> emails = new ArrayList<>();
+    private static List<String> getBusinessIdsFrom(String filePath) {
+        List<String> businessIds = new ArrayList<>();
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath));
              CSVParser parser = CSVFormat.DEFAULT.withDelimiter(',').withHeader().parse(bufferedReader)) {
             for (CSVRecord csvRecord : parser) {
-                emails.add(csvRecord.get("Email"));
+                businessIds.add(csvRecord.get("Business ID"));
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return emails;
+        return businessIds;
     }
 
     private static void printRecordsFrom(
@@ -106,7 +106,7 @@ public class UpdatedProductsCounter {
                 if (resultSetMetaData.getColumnLabel(i).equals("updated")) {
                     updated = Integer.parseInt(resultSet.getString(i));
                 }
-                if (resultSetMetaData.getColumnLabel(i).equals("email")) {
+                if (resultSetMetaData.getColumnLabel(i).equals("businessuser")) {
                     businessUsers.add(resultSet.getString(i));
                 }
                 String value = "\"" + resultSet.getString(i) + "\"";

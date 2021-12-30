@@ -12,6 +12,7 @@
         <module>new-accounts-counter</module>
         <module>created-or-updated-products-counter</module>
         <module>product-updated-merchants-counter</module>
+        <module>updated-products-list-generator</module>
     </modules>
 
     <dependencies>
